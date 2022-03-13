@@ -48,14 +48,18 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost("stop")]
-    public async Task<ActionResult<bool>> stopTimer([FromBody]string name)
+    public async Task<ActionResult<bool>> stopTimer([FromBody]Project project)
     {
         try
         {
-            var data = await _projectService.stopTimer(name);
-            if (data == false) return Conflict(data);
+            if (project.name != null) {
+                var data = await _projectService.stopTimer(project.name);
+                if (data == false) return Conflict(data);
+                return Ok(data);
+            } else {
+                return BadRequest(false);
+            }
 
-            return Ok(data);
         }
         catch (System.Exception)
         {
@@ -64,14 +68,17 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<bool>> put(long id, [FromBody]string name) 
+    public async Task<ActionResult<bool>> put(long id, [FromBody]Project project) 
     {
         try
-        {
-            var data = await _projectService.edit(id, name);
-            if (data == false) return Conflict(data);
-
-            return Ok(data);
+        {   
+            if (project.name != null) {
+                var data = await _projectService.edit(id, project.name);
+                if (data == false) return Conflict(data);
+                return Ok(data);
+            } else {
+                return BadRequest(false);
+            }
         }
         catch (System.Exception)
         {

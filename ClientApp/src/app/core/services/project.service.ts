@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Project } from '../models';
@@ -27,6 +27,30 @@ export class ProjectService {
     return this.httpClient.post<boolean>(
       this.baseUrl + API_BASE + TIMER_START_URL,
       null
+    );
+  }
+
+  stopTimer$(name: string): Observable<boolean> {
+    return this.httpClient.post<boolean>(
+      this.baseUrl + API_BASE + TIMER_STOP_URL,
+      {
+        name: name,
+      }
+    );
+  }
+
+  edit$(id: number, name: string): Observable<boolean> {
+    return this.httpClient.put<boolean>(
+      `${this.baseUrl + API_BASE + PROJECT_URL}/${id}`,
+      {
+        name: name,
+      }
+    );
+  }
+
+  delete$(id: number): Observable<boolean> {
+    return this.httpClient.delete<boolean>(
+      `${this.baseUrl + API_BASE + PROJECT_URL}/${id}`
     );
   }
 }

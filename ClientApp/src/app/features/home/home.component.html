@@ -2,18 +2,27 @@
   <div class="row">
     <div class="col text-center">
       <button
-        *ngIf="this.projects.length == 0; else stop_timer"
+        *ngIf="
+          this.projects.length == 0 || !activeProjectExists();
+          else stop_timer
+        "
         class="btn btn-outline-dark btn-lg my-5"
         (click)="startTimer()"
       >
         Start
       </button>
       <ng-template #stop_timer>
-        <button class="btn btn-outline-dark btn-lg my-5" (click)="stopTimer()">
+        <button
+          class="btn btn-outline-dark btn-lg my-5"
+          (click)="stopTimer(modal)"
+        >
           Stop
         </button>
       </ng-template>
     </div>
+  </div>
+  <div class="row">
+    <div class="col text-end">Mozda sutra</div>
   </div>
   <div class="row">
     <div *ngIf="this.projects.length > 0" class="col">
@@ -24,15 +33,30 @@
             <th scope="col">Start</th>
             <th scope="col">Stop</th>
             <th scope="col">Duration</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let project of this.projects; let i = index">
             <td>{{ project.name }}</td>
             <td>{{ project.start_time | date: "yyyy-MM-dd h:mm:ss" }}</td>
-            <td>{{ project.end_time }}</td>
+            <td>{{ project.end_time | date: "yyyy-MM-dd h:mm:ss" }}</td>
             <td>
               {{ getProjectDuration(i) | date: "h:mm:ss" }}
+            </td>
+            <td *ngIf="project.end_time !== null">
+              <button
+                class="btn btn-outline-dark btn-sm"
+                (click)="editProject(i, modal)"
+              >
+                Edit
+              </button>
+              <button
+                class="btn btn-outline-dark btn-sm ms-2"
+                (click)="removeProject(i)"
+              >
+                Remove
+              </button>
             </td>
           </tr>
         </tbody>
@@ -40,3 +64,40 @@
     </div>
   </div>
 </div>
+
+<!-- Modal  -->
+<ng-template #modal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">
+      {{ editingFlag ? "Edit Project" : "Save Stopped Project" }}
+    </h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.close()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="mb-3">
+      <label for="dateOfBirth">Project Name:</label>
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control"
+          id="project-name"
+          [(ngModel)]="project_name"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer text-center" style="justify-content: center">
+    <button
+      type="button"
+      class="btn btn-outline-dark"
+      (click)="saveStoppedProject(modal)"
+    >
+      {{ editingFlag ? "Save Edit" : "Stop Timer" }}
+    </button>
+  </div>
+</ng-template>

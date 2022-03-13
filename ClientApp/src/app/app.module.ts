@@ -7,10 +7,11 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './features/home/home.component';
 import { CoreModule } from './core/core.module';
 import { AppRoutingModule } from './app-routing.module';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [CoreModule, AppRoutingModule],
+  imports: [CoreModule, AppRoutingModule, NgbModule],
   providers: [],
   bootstrap: [AppComponent],
 })
