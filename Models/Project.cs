@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+
 namespace timely.Models;
+
 public record Project {
     public long id { get; set;}
     public string? name {get;set;}

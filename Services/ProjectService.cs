@@ -5,8 +5,6 @@ using timely.Data;
 namespace timely.Services;
 
 public interface IProjectService {
-
-    //Task<IEnumerable<Project>> GetAllProjects();
     Task<List<Project>> GetAllProjects();
     Task<bool> startTimer();
     Task<bool> stopTimer(string name);
@@ -29,11 +27,8 @@ public class ProjectService : IProjectService {
     public async Task<List<Project>> GetAllProjects()
     {   
         return await _timelyDb.Project.ToListAsync();
-       //return Ok(await _timelyDb.Project.ToListAsync());
     }
 
-    // TODO: make async
-    // TODO: pretty response tj. korektni http statusi :)
     public async Task<bool> startTimer(){
         if (this.getActiveProject() != null) return false;
 

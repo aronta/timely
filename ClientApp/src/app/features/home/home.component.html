@@ -1,0 +1,42 @@
+<div class="container">
+  <div class="row">
+    <div class="col text-center">
+      <button
+        *ngIf="this.projects.length == 0; else stop_timer"
+        class="btn btn-outline-dark btn-lg my-5"
+        (click)="startTimer()"
+      >
+        Start
+      </button>
+      <ng-template #stop_timer>
+        <button class="btn btn-outline-dark btn-lg my-5" (click)="stopTimer()">
+          Stop
+        </button>
+      </ng-template>
+    </div>
+  </div>
+  <div class="row">
+    <div *ngIf="this.projects.length > 0" class="col">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Project Name</th>
+            <th scope="col">Start</th>
+            <th scope="col">Stop</th>
+            <th scope="col">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let project of this.projects; let i = index">
+            <td>{{ project.name }}</td>
+            <td>{{ project.start_time | date: "yyyy-MM-dd h:mm:ss" }}</td>
+            <td>{{ project.end_time }}</td>
+            <td>
+              {{ getProjectDuration(i) | date: "h:mm:ss" }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
