@@ -101,4 +101,20 @@ public class ProjectController : ControllerBase
             return StatusCode(500);
         }
     }
+
+    [HttpPost("delete_all")]
+    public async Task<ActionResult<bool>> deleteAll(long id)
+    {
+        try
+        {
+            var data = await _projectService.deleteAll();
+            if (data == false) return Conflict(data);
+
+            return Ok(data);
+        }
+        catch (System.Exception)
+        {
+            return StatusCode(500);
+        }
+    }
 }

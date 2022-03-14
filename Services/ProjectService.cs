@@ -10,6 +10,7 @@ public interface IProjectService {
     Task<bool> stopTimer(string name);
     Task<bool> edit(long id, string name);
     Task<bool> delete(long id);
+    Task<bool> deleteAll();
 } 
 
 public class ProjectService : IProjectService {
@@ -70,6 +71,13 @@ public class ProjectService : IProjectService {
         }
 
         _timelyDb.Project.Remove(project);
+        return Convert.ToBoolean(await _timelyDb.SaveChangesAsync());
+    }
+
+    public async Task<bool> deleteAll() {
+        var all = from c in _timelyDb.Project select c;
+        _timelyDb.Project.RemoveRange(all);
+
         return Convert.ToBoolean(await _timelyDb.SaveChangesAsync());
     }
 
