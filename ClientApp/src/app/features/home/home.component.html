@@ -36,7 +36,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let project of this.projects; let i = index">
+          <!-- <tr *ngFor="let project of this.projects; let i = index"> -->
+          <tr
+            *ngFor="
+              let project of projects
+                | paginate
+                  : {
+                      itemsPerPage: limit,
+                      currentPage: page,
+                      totalItems: count
+                    };
+              let i = index
+            "
+          >
             <td>{{ project.name }}</td>
             <td>{{ project.start_time | date: "yyyy-MM-dd h:mm:ss" }}</td>
             <td>{{ project.end_time | date: "yyyy-MM-dd h:mm:ss" }}</td>
@@ -72,11 +84,36 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Pagination -->
+      <div class="d-flex">
+        <pagination-controls
+          class="flex-grow-1"
+          (pageChange)="changePage($event)"
+        ></pagination-controls>
+        <label class="mt-2 me-2">Items per page:</label>
+        <div>
+          <select
+            [(ngModel)]="limit"
+            class="form-select"
+            aria-label="Default select example"
+            (change)="changeLimit()"
+          >
+            <option *ngFor="let option of limitOptions">
+              {{ option }}
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
   <div *ngIf="projects.length > 0" class="row mt-2">
-    <div *ngIf="!activeProjectExists()" class="col-6 text-start">
-      <button class="btn btn-outline-dark" (click)="downloadCsv()">
+    <div class="col-6 text-start">
+      <button
+        *ngIf="!activeProjectExists()"
+        class="btn btn-outline-dark"
+        (click)="downloadCsv()"
+      >
         Export to .csv
       </button>
     </div>

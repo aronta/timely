@@ -5,7 +5,7 @@ using timely.Data;
 namespace timely.Services;
 
 public interface IProjectService {
-    Task<List<Project>> GetAllProjects();
+    Task<ProjectPaginated> getAllProjects(int? page, int? limit);
     Task<bool> startTimer();
     Task<bool> stopTimer(string name);
     Task<bool> edit(long id, string name);
@@ -25,9 +25,37 @@ public class ProjectService : IProjectService {
         return _timelyDb.Project.Where(project => project.end_time == null).FirstOrDefault();
     }
 
-    public async Task<List<Project>> GetAllProjects()
+    public async Task<ProjectPaginated> getAllProjects(int? page, int? limit)
     {   
-        return await _timelyDb.Project.ToListAsync();
+        ProjectPaginated response;
+
+        if ( page.HasValue ) {
+            int pageResults = limit.HasValue ? (int) limit : 20; 
+            int pageCount = (int) Math.Ceiling(_timelyDb.Project.Count() / (float) pageResults);
+
+            var projects = await _timelyDb.Project.OrderByDescending(project => project.start_time).Skip(((int)page-1) * pageResults)
+                                            .Take((int)pageResults)
+                                            .ToListAsync();
+
+            response = new ProjectPaginated {
+                Projects = projects,
+                CurrentPage = (int) page,
+                Pages = pageCount,
+                perPage = pageResults
+
+            };
+
+        } else {
+            var projects = await _timelyDb.Project.OrderByDescending(project => project.start_time).ToListAsync();
+            response = new ProjectPaginated {
+                Projects = projects,
+                CurrentPage = 1,
+                Pages = 1,
+                perPage = projects.Count()
+            };
+        }
+
+        return response;
     }
 
     public async Task<bool> startTimer(){

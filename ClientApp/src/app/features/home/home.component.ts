@@ -14,9 +14,6 @@ export class HomeComponent implements OnInit {
     private modalService: NgbModal
   ) {}
 
-  //TODO: return sve projekte sortiranje po vremenu stvaranja
-
-  projects: Project[] = [];
   project_name: string = '';
   closeResult: string = '';
   editingIndex?: number;
@@ -24,20 +21,54 @@ export class HomeComponent implements OnInit {
   time: number = 0;
   interval: ReturnType<typeof setInterval> | undefined;
 
+  limitOptions = [5, 10, 15, 20];
+
+  // Query params
+  page?: number = 1;
+  limit?: number = this.limitOptions[0];
+
+  // Query returns
+  projects: Project[] = [];
+  count: number = 0;
+
   ngOnInit() {
-    this.projectService.getAllProjects$().subscribe((res) => {
-      this.projects = res;
+    this.getProjects();
+  }
 
-      var counterFromSession = window.sessionStorage.getItem(DURATION_KEY);
+  getProjects() {
+    this.projectService
+      .getAllProjects$(this.page, this.limit)
+      .subscribe((res) => {
+        this.projects = res.projects;
+        this.count = res.perPage * res.pages;
 
-      if (counterFromSession !== null) {
-        if (this.activeProjectExists()) {
-          if (this.interval !== undefined) clearInterval(this.interval);
-          this.time = parseInt(counterFromSession);
-          this.startDuration();
+        var counterFromSession = window.sessionStorage.getItem(DURATION_KEY);
+
+        if (counterFromSession !== null) {
+          if (this.activeProjectExists()) {
+            if (this.interval !== undefined) clearInterval(this.interval);
+            this.time = parseInt(counterFromSession);
+            this.startDuration();
+          }
         }
-      }
-    });
+
+        if (this.projects.length <= 0 && this.page !== 1) {
+          this.page =
+            this.page !== undefined && this.page > 1 ? this.page - 1 : 1;
+          this.getProjects();
+        }
+      });
+  }
+
+  changePage(event: any) {
+    this.page = event;
+    this.getProjects();
+  }
+
+  changeLimit() {
+    // NOTE: Limit is set by ngModel
+    this.page = 1;
+    this.getProjects();
   }
 
   // Helper function for formatting live timer
@@ -66,6 +97,7 @@ export class HomeComponent implements OnInit {
   }
 
   activeProjectExists() {
+    if (window.sessionStorage.getItem(DURATION_KEY)) return true;
     var activeProjectIndex: number;
     activeProjectIndex = this.projects.findIndex(
       (item) => item.end_time === null
@@ -81,9 +113,8 @@ export class HomeComponent implements OnInit {
   startTimer() {
     this.projectService.startTimer$().subscribe((_) => {
       this.startDuration();
-      this.projectService.getAllProjects$().subscribe((res) => {
-        this.projects = res;
-      });
+      this.page = 1;
+      this.getProjects();
     });
   }
 
@@ -96,8 +127,9 @@ export class HomeComponent implements OnInit {
     return ('0' + n).slice(-2);
   }
 
-  getProjectDuration(index: number) {
-    const project = this.projects[index];
+  getProjectDuration(index: number, projArr?: Project[]) {
+    const projects = projArr !== undefined ? projArr : this.projects;
+    const project = projects[index];
     const start = new Date(project.start_time);
 
     if (project.end_time && project.end_time !== null) {
@@ -121,9 +153,7 @@ export class HomeComponent implements OnInit {
         this.project_name = '';
         this.clearTimerInterval();
         modal.close();
-        this.projectService
-          .getAllProjects$()
-          .subscribe((res) => (this.projects = res));
+        this.getProjects();
       });
     } else {
       if (this.editingIndex !== undefined) {
@@ -134,9 +164,7 @@ export class HomeComponent implements OnInit {
             modal.close();
             this.editingFlag = false;
             this.editingIndex = undefined;
-            this.projectService
-              .getAllProjects$()
-              .subscribe((res) => (this.projects = res));
+            this.getProjects();
           });
       }
     }
@@ -160,9 +188,7 @@ export class HomeComponent implements OnInit {
     }
 
     this.projectService.delete$(this.projects[index].id).subscribe((_) => {
-      this.projectService
-        .getAllProjects$()
-        .subscribe((res) => (this.projects = res));
+      this.getProjects();
     });
   }
 
@@ -172,22 +198,24 @@ export class HomeComponent implements OnInit {
     }
 
     this.projectService.deleteAll$().subscribe((_) => {
-      this.projectService.getAllProjects$().subscribe((res) => {
-        this.projects = res;
-      });
+      this.getProjects();
     });
   }
 
   downloadCsv() {
     // making json prettier for .csv format
-    const projects_with_duration = this.projects.map((project, index) => ({
-      ...project,
-      start_time: new Date(project.start_time).toString(),
-      end_time: project.end_time ? new Date(project.end_time).toString() : '',
-      duration: this.getProjectDuration(index),
-    }));
+    this.projectService.getAllProjects$().subscribe((res) => {
+      const projects = res.projects;
 
-    const jsonForExport = JSON.parse(JSON.stringify(projects_with_duration));
-    this.projectService.downloadFile(jsonForExport, 'Finished_projects');
+      const projects_with_duration = projects.map((project, index) => ({
+        ...project,
+        start_time: new Date(project.start_time).toString(),
+        end_time: project.end_time ? new Date(project.end_time).toString() : '',
+        duration: this.getProjectDuration(index, projects),
+      }));
+
+      const jsonForExport = JSON.parse(JSON.stringify(projects_with_duration));
+      this.projectService.downloadFile(jsonForExport, 'Finished_projects');
+    });
   }
 }

@@ -13,12 +13,13 @@ public class ProjectController : ControllerBase
         _projectService = projectService;
     }
 
-    [HttpGet] 
-    public async Task<ActionResult<List<Project>>> Get() 
-    {
+    [HttpGet()]
+    public async Task<ActionResult<List<Project>>> GetProjects(int? page, int? limit) 
+    {   
         try
-        {
-            var data = await(_projectService.GetAllProjects());
+        {   
+
+            var data = await(_projectService.getAllProjects(page, limit));
             if (data == null) return NotFound(data);
 
             return Ok(data);
@@ -28,8 +29,6 @@ public class ProjectController : ControllerBase
             return StatusCode(500);
         }
     }
-    
-    // GET api/project i ono ?page i ?limit
 
     [HttpPost("start")]
     public async Task<ActionResult<bool>> startTimer()

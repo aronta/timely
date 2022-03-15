@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Project } from '../models';
+import { Project, ProjectPaginated } from '../models';
 
 const API_BASE = 'api/';
 const PROJECT_URL = 'project';
@@ -18,9 +18,19 @@ export class ProjectService {
     @Inject('BASE_URL') private baseUrl: string
   ) {}
 
-  getAllProjects$(): Observable<Project[]> {
-    return this.httpClient.get<Project[]>(
-      this.baseUrl + API_BASE + PROJECT_URL
+  getAllProjects$(page?: number, limit?: number): Observable<ProjectPaginated> {
+    let params = new HttpParams();
+
+    if (page !== undefined) {
+      params = params.append('page', page);
+      if (limit !== undefined) params = params.append('limit', limit);
+    }
+
+    return this.httpClient.get<ProjectPaginated>(
+      this.baseUrl + API_BASE + PROJECT_URL,
+      {
+        params: params,
+      }
     );
   }
 
@@ -70,7 +80,7 @@ export class ProjectService {
       'end_time',
       'duration',
     ]);
-    console.log(csvData);
+    //console.log(csvData);
     let blob = new Blob(['\ufeff' + csvData], {
       type: 'text/csv;charset=utf-8;',
     });
